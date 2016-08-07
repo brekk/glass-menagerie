@@ -149,7 +149,6 @@ const assertAboutSplitter = curry((asIndicies, methodName, assert) => {
   const failee = getInvalidInput(methodName)()
   const valid = inputs[methodName]
   const output = method([valid, failee])
-  console.log(`methodName`, methodName, output)
   assert.plan(1)
   assert.ok(output)
   assert.end()

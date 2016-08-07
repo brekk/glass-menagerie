@@ -34,29 +34,30 @@
     "prefer-reflect": 0,
     "space-before-function-paren": [2, "never"],
     "strict": 0,
-    "lodash-fp/use-fp": "error",
-    "lodash-fp/consistent-compose": ["error", "flow"],
-    "lodash-fp/consistent-name": ["error", "fp"],
-    "lodash-fp/no-argumentless-calls": "error",
-    "lodash-fp/no-chain": "error",
-    "lodash-fp/no-extraneous-args": "error",
-    "lodash-fp/no-extraneous-function-wrapping": "error",
-    "lodash-fp/no-extraneous-iteratee-args": "error",
-    "lodash-fp/no-for-each": "off",
-    "lodash-fp/no-partial-of-curried": "error",
-    "lodash-fp/no-single-composition": "error",
-    "lodash-fp/no-submodule-destructuring": "error",
-    "lodash-fp/no-unused-result": "error",
-    "lodash-fp/prefer-compact": "error",
-    "lodash-fp/prefer-get": "error",
+    "no-shadow": [2, { "builtinGlobals": false, "hoist": "all" }],
+    "lodash-fp/use-fp": 2,
+    "lodash-fp/consistent-compose": [2, "flow"],
+    "lodash-fp/consistent-name": [2, "fp"],
+    "lodash-fp/no-argumentless-calls": 2,
+    "lodash-fp/no-chain": 2,
+    "lodash-fp/no-extraneous-args": 2,
+    "lodash-fp/no-extraneous-function-wrapping": 2,
+    "lodash-fp/no-extraneous-iteratee-args": 2,
+    "lodash-fp/no-for-each": 0,
+    "lodash-fp/no-partial-of-curried": 2,
+    "lodash-fp/no-single-composition": 2,
+    "lodash-fp/no-submodule-destructuring": 2,
+    "lodash-fp/no-unused-result": 2,
+    "lodash-fp/prefer-compact": 2,
+    "lodash-fp/prefer-get": 2,
     "lodash-fp/prefer-identity": [
-      "error",
+      2,
       {
         "arrowFunctions": true
       }
     ],
     "lodash-fp/preferred-alias": [
-      "error",
+      2,
       {
         "overrides": [
           "map",
@@ -84,5 +85,5 @@
     ]
   },
   "extends": ["standard"],
-  "plugins": ["babel", "lodash-fp"]
+  "plugins": ["babel", "lodash-fp", "react"]
 }
