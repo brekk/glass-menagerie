@@ -7,7 +7,7 @@ import server from 'react-dom/server'
 import html2jade from 'html2jade'
 import Task from 'data.task'
 
-import trace from './trace'
+// import trace from './trace'
 import {resolveTask} from './task'
 
 require(`babel-core/register`)({
@@ -18,8 +18,8 @@ require(`babel-core/register`)({
 })
 
 const createElement = curry(function curriedCreateElement(props, html) {
-  const {children, ...otherProps} = props
-  if (children && children.length > 0) {
+  if (props && props.children && props.children.length > 0) {
+    const {children, ...otherProps} = props
     return React.createElement(html, otherProps, ...map(React.createElement, children))
   }
   return React.createElement(html, props)
@@ -54,9 +54,7 @@ export const htmlToPug = (html) => {
 
 jsx.toPug = curry(function curriedToPug(props, rawJSX) {
   const jsxToPug = flow(
-    trace(`jsx`),
     jsx.toHTML(props),
-    trace(`html`),
     htmlToPug
   )
   return jsxToPug(rawJSX)

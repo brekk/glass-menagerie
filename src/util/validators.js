@@ -14,31 +14,31 @@ export const ofType = curry(function curriedTypeOf(type, thing) {
   return (typeof thing === type) && (typeof thing !== `undefined`)
 })
 
-export const isType = reduce((struct, x) => {
+const isTypeReducer = (struct, x) => {
   const newStruct = {...struct}
   newStruct[x] = ofType(x)
   return newStruct
-}, {}, [
+}
+
+const mostTypes = [
   `string`,
   `number`,
   `object`,
   `boolean`,
   `array`
-])
-
-isType.fn = ofType(`function`)
-// isType.array = Array.isArray
-
-const types = [
-  `string`,
-  `number`,
-  `object`,
-  `fn`,
-  `array`,
-  `boolean`
 ]
 
-export const isValid = reduce((oldTypes, type) => {
+export const isType = reduce(isTypeReducer, {}, mostTypes)
+
+// `function` is a reserved word
+isType.fn = ofType(`function`)
+
+const types = [
+  ...mostTypes,
+  `fn`
+]
+
+const internalValidReducer = (oldTypes, type) => {
   const newTypes = {...oldTypes}
   newTypes[type] = (thing) => {
     const match = isType[type](thing)
@@ -49,39 +49,53 @@ export const isValid = reduce((oldTypes, type) => {
     return Success(thing)
   }
   return newTypes
-}, {}, types)
+}
 
-const isValidReducer = curry((pullValue, list, structure, item) => {
-  const copy = cloneDeep(structure)
-  const getValue = (x) => list[x]
-  const output = pullValue ? getValue(copy.index) : copy.index
-  // const output = getValue(copy.index)
-  if (item.isFailure) {
-    copy.failures = structure.failures.concat(output)
-  } else {
-    copy.successes = structure.successes.concat(output)
+export const isValid = reduce(internalValidReducer, {}, types)
+
+const addValueToFailureOrSuccess = (container, isFailure, output) => {
+  const copy = cloneDeep(container)
+  const key = isFailure ? `successes` : `failures`
+  if (isFailure) {
+    copy[key] = copy[key].concat(output)
   }
+  return copy
+}
+
+export const getOrPullValue = (pullData, puller, value) => {
+  return pullData ? puller(value) : value
+}
+
+export const isValidReducer = curry((pullValue, list, structure, item) => {
+  const getValue = (x) => list[x]
+  const output = getOrPullValue(pullValue, getValue, structure.index)
+  // const output = getValue(copy.index)
+  const copy = addValueToFailureOrSuccess(structure, item.isFailure, output)
   copy.index = structure.index + 1
   return copy
 })
+
+export const pullFailuresAndSuccesses = ({failures, successes}) => ({failures, successes})
 
 export const isValidSplitter = curry(function curriedValidator(asIndexes, validator, list) {
   const initialState = {failures: [], successes: [], index: 0}
   const splitter = flow(
     map(validator),
-    reduce(isValidReducer(asIndexes, list), initialState)
+    reduce(isValidReducer(asIndexes, list), initialState),
+    pullFailuresAndSuccesses
   )
   const split = splitter(list)
-  delete split.index
   return split
 })
 
+const splitterReducer = curry(function curriedSplittingReducer(asIndexes, oldTypes, type) {
+  const newTypes = cloneDeep(oldTypes)
+  newTypes[type] = isValidSplitter(asIndexes, isValid[type])
+  return newTypes
+})
+
 export const splitters = (asIndexes) => {
-  return reduce((oldTypes, type) => {
-    const newTypes = {...oldTypes}
-    newTypes[type] = isValidSplitter(asIndexes, isValid[type])
-    return newTypes
-  }, {}, types)
+  return reduce(splitterReducer(asIndexes), {}, types)
 }
 
 export const splitValidListAsIndex = splitters(true)
