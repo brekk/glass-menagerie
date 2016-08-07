@@ -1,5 +1,5 @@
 import Task from 'data.task'
-import curry from 'lodash/fp/curry'
+// import curry from 'lodash/fp/curry'
 
 export const promiseToTask = (promise) => {
   return new Task((reject, resolve) => {

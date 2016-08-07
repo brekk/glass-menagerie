@@ -49,7 +49,6 @@ test(`Task.resolve should always pass synchronous input task`, (t) => {
 })
 
 const nodeStyleCBFunction = curry((errorWord, val, fn) => {
-  console.log(`received`, errorWord, val, fn)
   if (val) {
     fn(new Error(errorWord))
     return
