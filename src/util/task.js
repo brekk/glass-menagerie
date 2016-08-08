@@ -1,5 +1,19 @@
 import Task from 'data.task'
-// import curry from 'lodash/fp/curry'
+import reduce from 'lodash/fp/reduce'
+
+export const sequence = (list) => {
+  const [initial, ...remaining] = list
+  return reduce((lastTask, newTask) => {
+    return lastTask.chain((a) => {
+      return newTask.map((b) => {
+        if (!Array.isArray(a)) {
+          a = [a]
+        }
+        return a.concat(b)
+      })
+    }, newTask)
+  }, initial, remaining)
+}
 
 export const promiseToTask = (promise) => {
   return new Task((reject, resolve) => {
@@ -10,6 +24,15 @@ export const promiseToTask = (promise) => {
            .catch(reject)
   })
 }
+
+export const cbToTaskResolver = (fn) => new Task((reject, resolve) => {
+  fn((e, x) => {
+    if (e) {
+      return reject(e)
+    }
+    resolve(x)
+  })
+})
 
 export const cbToTask = (fn) => {
   return new Task((reject, resolve) => {
@@ -39,5 +62,6 @@ export default {
   reject: rejectTask,
   resolve: resolveTask,
   fromCB: cbToTask,
-  fromPromise: promiseToTask
+  fromPromise: promiseToTask,
+  sequence
 }
