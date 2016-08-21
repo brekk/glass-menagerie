@@ -7,15 +7,17 @@ import random from '../harness/random'
 import trace from '../../src/util/trace'
 
 const {
-  reject,
-  resolve,
+  reject: rejectTask,
+  resolve: resolveTask,
   fromCB,
-  fromPromise
+  fromPromise,
+  writeFile,
+  writeData
 } = task
 
-const randomPromise = (test, eventualValue) => () => {
+const randomPromise = (bool, eventualValue) => () => {
   return new Promise((resolve, reject) => {
-    if (test) {
+    if (bool) {
       resolve(eventualValue)
       return
     }
@@ -25,10 +27,10 @@ const randomPromise = (test, eventualValue) => () => {
 
 test(`Task.reject should always fail synchronous input task`, (t) => {
   t.plan(2)
-  t.equal(typeof reject, `function`)
+  t.equal(typeof rejectTask, `function`)
   const word = random.word(6)
   const rejecter = () => new TypeError(word)
-  const output = reject(rejecter())
+  const output = rejectTask(rejecter())
   output.fork((x) => {
     t.equal(x.message, word)
     t.end()
@@ -37,9 +39,9 @@ test(`Task.reject should always fail synchronous input task`, (t) => {
 
 test(`Task.resolve should always pass synchronous input task`, (t) => {
   t.plan(2)
-  t.equal(typeof resolve, `function`)
+  t.equal(typeof resolveTask, `function`)
   const word = random.word(6)
-  const output = resolve(word)
+  const output = resolveTask(word)
   output.fork((e) => {
     throw e
   }, (x) => {

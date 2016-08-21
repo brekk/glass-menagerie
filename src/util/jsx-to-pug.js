@@ -17,7 +17,7 @@ require(`babel-core/register`)({
   ]
 })
 
-const createElement = curry(function curriedCreateElement(props, html) {
+const createElement = curry(function _createElement(props, html) {
   if (props && props.children && props.children.length > 0) {
     const {children, ...otherProps} = props
     return React.createElement(html, otherProps, ...map(React.createElement, children))
@@ -36,11 +36,11 @@ export const jsx = {
 }
 
 export const htmlToPug = (html) => {
-  return new Task(function htmlToPugTask(reject, resolve) {
+  return new Task(function _htmlToPugTask(reject, resolve) {
     if (typeof html !== `string`) {
       return reject(new TypeError(`Expected to be given html string.`))
     }
-    html2jade.convertHtml(html, {bodyless: true}, function htmlToPugCallback(err, jade) {
+    html2jade.convertHtml(html, {bodyless: true}, function _htmlToPugCallback(err, jade) {
       // https://github.com/donpark/html2jade/blob/master/lib/html2jade.js#L718 this dumdum
       // ain't returning errors, so we can't get to here
       /* istanbul ignore if */
@@ -52,7 +52,7 @@ export const htmlToPug = (html) => {
   })
 }
 
-jsx.toPug = curry(function curriedToPug(props, rawJSX) {
+jsx.toPug = curry(function _toPug(props, rawJSX) {
   const jsxToPug = flow(
     jsx.toHTML(props),
     htmlToPug
@@ -60,12 +60,13 @@ jsx.toPug = curry(function curriedToPug(props, rawJSX) {
   return jsxToPug(rawJSX)
 })
 
-jsx.toJade = curry(function curriedToJade(props, rawJSX) {
+export const depText = `[deprecated] This format and method is going away once pug is out of beta.`
+
+jsx.toJade = curry(function _toJade(props, rawJSX) {
   const jsxToPug = flow(
     jsx.toPug(props),
     (x) => {
-      /* eslint no-console: 0 */
-      console.warn(`[deprecated] This format and method is going away once pug is out of beta.`)
+      console.warn(depText) // eslint-disable-line no-console
       return x
     }
   )
@@ -99,7 +100,7 @@ const resolveFilePath = flow(
   unwrapDefault
 )
 
-const fileTask = curry(function curriedFileTask(method, props, filePath) {
+const fileTask = curry(function _fileTask(method, props, filePath) {
   return new Task(function fileTaskRejectResolve(reject, resolve) {
     resolveFilePath(filePath).fork(reject, function internalResolveFile(jsxFile) {
       method(props, jsxFile).fork(reject, resolve)
@@ -112,9 +113,6 @@ export const file = {
   toPug: fileTask(jsx.toPug),
   toJade: fileTask(jsx.toFile)
 }
-// export const jsx2pug = flow(
-//
-// )
 
 export default {
   jsx,

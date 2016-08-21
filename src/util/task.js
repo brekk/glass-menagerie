@@ -1,5 +1,9 @@
 import Task from 'data.task'
 import reduce from 'lodash/fp/reduce'
+import curry from 'lodash/fp/curry'
+import fs from 'fs'
+import _debug from 'debug'
+const debug = _debug(`glass:util:task`)
 
 export const sequence = (list) => {
   const [initial, ...remaining] = list
@@ -58,10 +62,33 @@ export const rejectTask = (x) => {
   })
 }
 
+export const writeData = curry((reject, resolve, filename, raw) => {
+  debug(`attempting to write to ${filename}: ${raw}`)
+  fs.writeFile(filename, raw, `utf8`, (err) => {
+    debug(err || `outcome: success`)
+    if (err) {
+      return reject(err)
+    }
+    resolve(true)
+  })
+})
+
+export const writeFile = curry(function _writeFile(filename, data) {
+  return new Task(function _writeFileTaskRR(reject, resolve) {
+    if (data && data.fork) {
+      data.fork(reject, writeData(reject, resolve, filename))
+      return
+    }
+    writeData(reject, resolve, filename, data)
+  })
+})
+
 export default {
   reject: rejectTask,
   resolve: resolveTask,
   fromCB: cbToTask,
   fromPromise: promiseToTask,
+  writeFile,
+  writeData,
   sequence
 }
