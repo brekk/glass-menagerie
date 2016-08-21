@@ -1,12 +1,20 @@
 import Task from 'data.task'
 import reduce from 'lodash/fp/reduce'
+import filter from 'lodash/fp/filter'
 import curry from 'lodash/fp/curry'
 import fs from 'fs'
 import _debug from 'debug'
 const debug = _debug(`glass:util:task`)
 
-export const sequence = (list) => {
-  const [initial, ...remaining] = list
+const assertTasks = filter((x) => {
+  return !!x.fork
+})
+
+export const sequence = (listOfTasks) => {
+  if (listOfTasks.length === 0 || assertTasks(listOfTasks).length !== listOfTasks.length) {
+    throw new TypeError(`Expected to be given a list of tasks with fork methods.`)
+  }
+  const [initial, ...remaining] = listOfTasks
   return reduce((lastTask, newTask) => {
     return lastTask.chain((a) => {
       return newTask.map((b) => {
@@ -28,15 +36,6 @@ export const promiseToTask = (promise) => {
            .catch(reject)
   })
 }
-
-export const cbToTaskResolver = (fn) => new Task((reject, resolve) => {
-  fn((e, x) => {
-    if (e) {
-      return reject(e)
-    }
-    resolve(x)
-  })
-})
 
 export const cbToTask = (fn) => {
   return new Task((reject, resolve) => {
