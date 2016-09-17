@@ -2,7 +2,7 @@ import test from 'tape'
 import id from 'lodash/fp/identity'
 import curry from 'lodash/fp/curry'
 
-import random from '../harness/random'
+import random from 'f-utility/testing/random'
 // import trace from '../../src/util/trace'
 import {
   jsx,
