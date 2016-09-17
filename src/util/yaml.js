@@ -1,6 +1,6 @@
 import flow from 'lodash/fp/flow'
 import yml from 'js-yaml'
-import {readFile} from './fs'
+import {readFile} from 'f-utility/core/fs'
 
 const {safeLoad: parse} = yml
 
