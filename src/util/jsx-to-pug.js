@@ -8,7 +8,7 @@ import html2jade from 'html2jade'
 import Task from 'data.task'
 
 // import trace from './trace'
-import {resolveTask} from './task'
+import {resolveTask} from 'f-utility/core/task'
 
 require(`babel-core/register`)({
   plugins: [
