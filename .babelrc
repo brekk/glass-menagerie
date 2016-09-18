@@ -1,4 +1,9 @@
 {
   "presets": ["es2015", "react"],
+  "env": {
+    "test": {
+      "plugins": ["istanbul"]
+    }
+  },
   "plugins": ["transform-object-rest-spread", "transform-es2015-destructuring"]
 }

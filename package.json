@@ -5,33 +5,74 @@
   "main": "index.js",
   "scripts": {
     "test": "npm run lint && npm run build",
-    "test-es6": "babel-tape-runner \"tests/**/spec-*.js\"",
+    "test-es6": "ava --esnext",
     "test-core": "npm run transpile && npm run test-es6",
-    "test-faucet": "npm run test-core | ./node_modules/.bin/faucet",
     "test-log": "npm run test-core > test-output.log",
-    "cover": "nyc --statements 100 --lines 100 --functions 100 --branches 90 -x=lib/**/*.js -x=tests/**/*.js --r=lcov --r=json --r=html --r=text --r=text-summary npm run test-faucet",
+    "cover": "nyc npm run test-core",
     "report": "istanbul report",
     "transpile": "babel src -d lib",
     "build": "npm run cover",
     "lint": "./node_modules/.bin/eslint -c ./.eslintrc src/** --rule 'no-console: 2'",
-    "prepublish": "npm run build"
+    "publish": "npm run build"
   },
   "bin": {
     "glass": "./cli.js"
+  },
+  "ava": {
+    "babel": "inherit",
+    "require": [
+      "babel-register"
+    ],
+    "files": [
+      "tests/*.js",
+      "tests/**/*.js"
+    ],
+    "source": [
+      "src/*.js",
+      "src/**/*.js"
+    ],
+    "concurrency": 4
+  },
+  "nyc": {
+    "lines": 90,
+    "statements": 90,
+    "functions": 90,
+    "branches": 90,
+    "reporter": [
+      "lcov",
+      "json",
+      "html",
+      "text",
+      "text-summary"
+    ],
+    "exclude": [
+      "node_modules",
+      "tests"
+    ],
+    "include": [
+      "src/*.js",
+      "src/**/*.js"
+    ],
+    "require": [
+      "babel-register"
+    ],
+    "all": true,
+    "check-coverage": true
   },
   "keywords": [],
   "author": "brekk",
   "license": "MIT",
   "devDependencies": {
+    "ava": "^0.16.0",
     "babel-cli": "^6.11.4",
     "babel-core": "^6.13.2",
     "babel-eslint": "^6.1.2",
+    "babel-plugin-istanbul": "^2.0.1",
     "babel-plugin-transform-es2015-destructuring": "^6.9.0",
     "babel-plugin-transform-object-rest-spread": "^6.8.0",
     "babel-preset-es2015": "^6.9.0",
     "babel-preset-react": "^6.11.1",
     "babel-register": "^6.11.6",
-    "babel-tape-runner": "^2.0.1",
     "eslint": "^3.2.0",
     "eslint-config-standard": "^5.3.5",
     "eslint-plugin-babel": "^3.3.0",
@@ -42,8 +83,7 @@
     "faucet": "0.0.1",
     "istanbul": "^0.4.4",
     "must": "^0.13.2",
-    "nyc": "^7.1.0",
-    "tape": "^4.6.0"
+    "nyc": "^7.1.0"
   },
   "dependencies": {
     "chalk": "^1.1.3",
