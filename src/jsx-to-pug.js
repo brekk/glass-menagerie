@@ -196,8 +196,3 @@ export const file = {
   toPug: fileTask(jsx.toPug),
   toJade: fileTask(jsx.toFile)
 }
-
-export default {
-  jsx,
-  file
-}

@@ -1,5 +1,5 @@
 import test from 'ava'
-import yaml from '../../src/util/yaml'
+import yaml from '../src/yaml'
 
 test(`yaml should parse raw yaml strings`, (t) => {
   t.plan(2)

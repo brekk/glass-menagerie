@@ -1,4 +1,9 @@
 {
-  "presets": ["es2015", "react"],
-  "plugins": ["transform-object-rest-spread", "transform-es2015-destructuring"]
+  "presets": ["react", "stage-0", "es2015"],
+  "plugins": [
+    "transform-object-rest-spread",
+    "transform-es2015-destructuring",
+    "transform-async-to-generator",
+    "syntax-async-functions"
+  ]
 }

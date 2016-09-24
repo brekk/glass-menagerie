@@ -5,18 +5,18 @@
   "main": "index.js",
   "scripts": {
     "test": "npm run lint && npm run build",
-    "test-es6": "ava --esnext",
+    "test-es6": "ava",
     "test-core": "npm run transpile && npm run test-es6",
     "test-log": "npm run test-core > test-output.log",
     "cover": "nyc npm run test-core",
     "report": "istanbul report",
     "transpile": "babel src -d lib",
     "build": "npm run cover",
-    "lint": "./node_modules/.bin/eslint -c ./.eslintrc src/** --rule 'no-console: 2'",
+    "lint": "eslint -c ./.eslintrc src/** --rule 'no-console: 2'",
     "publish": "npm run build"
   },
   "bin": {
-    "glass": "./cli.js"
+    "glass": "./lib/bin/glass.js"
   },
   "ava": {
     "babel": "inherit",
@@ -24,14 +24,14 @@
       "babel-register"
     ],
     "files": [
-      "tests/*.js",
-      "tests/**/*.js"
+      "tests/*",
+      "tests/**/*"
     ],
     "source": [
       "src/*.js",
       "src/**/*.js"
     ],
-    "concurrency": 4
+    "concurrency": 8
   },
   "nyc": {
     "lines": 95,
@@ -46,6 +46,7 @@
       "text-summary"
     ],
     "exclude": [
+      "src/cli/glass.js",
       "node_modules",
       "tests"
     ],
@@ -65,12 +66,17 @@
   "devDependencies": {
     "ava": "^0.16.0",
     "babel-cli": "^6.11.4",
-    "babel-core": "^6.13.2",
+    "babel-core": "^6.14.0",
     "babel-eslint": "^6.1.2",
+    "babel-plugin-syntax-async-functions": "^6.13.0",
     "babel-plugin-transform-es2015-destructuring": "^6.9.0",
     "babel-plugin-transform-object-rest-spread": "^6.8.0",
+    "babel-plugin-transform-runtime": "^6.15.0",
+    "babel-polyfill": "^6.13.0",
     "babel-preset-es2015": "^6.9.0",
     "babel-preset-react": "^6.11.1",
+    "babel-preset-stage-0": "^6.5.0",
+    "babel-preset-stage-2": "^6.13.0",
     "babel-register": "^6.11.6",
     "eslint": "^3.2.0",
     "eslint-config-standard": "^5.3.5",
@@ -79,6 +85,7 @@
     "eslint-plugin-promise": "^2.0.0",
     "eslint-plugin-react": "^6.0.0",
     "eslint-plugin-standard": "^2.0.0",
+    "execa": "^0.4.0",
     "faucet": "0.0.1",
     "istanbul": "^0.4.4",
     "must": "^0.13.2",
@@ -90,7 +97,7 @@
     "data.task": "^3.1.0",
     "data.validation": "^1.3.1",
     "eslint-config-standard": "^5.3.5",
-    "f-utility": "^1.0.4",
+    "f-utility": "^1.0.5",
     "html2jade": "^0.8.4",
     "js-yaml": "^3.6.1",
     "lodash": "^4.14.1",

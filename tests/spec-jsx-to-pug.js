@@ -4,17 +4,17 @@ import id from 'lodash/fp/identity'
 import curry from 'lodash/fp/curry'
 
 import random from 'f-utility/testing/random'
-// import trace from '../../src/util/trace'
+// import trace from '../../src/trace'
 import {
   jsx,
   htmlToPug,
   file,
   unwrapDefault
-} from '../../src/util/jsx-to-pug'
+} from '../src/jsx-to-pug'
 
-import Hello from '../fixtures/fixture-simple-jsx'
-import Log from '../fixtures/fixture-props-jsx'
-import Parent from '../fixtures/fixture-children-jsx'
+import Hello from './fixtures/fixture-simple-jsx'
+import Log from './fixtures/fixture-props-jsx'
+import Parent from './fixtures/fixture-children-jsx'
 
 const htmlHelloString = `<p>Hello</p>`
 const pugHelloString = `p Hello\n`
@@ -104,7 +104,7 @@ test(`jsx.htmlToPug should fail when given html which ain't a string`, (t) => {
 test(`file.toHTML should convert a filename into HTML`, (t) => {
   t.plan(3)
   t.is(typeof file.toHTML, `function`)
-  const task = file.toHTML({}, path.resolve(__dirname, `../fixtures/fixture-simple-jsx.js`))
+  const task = file.toHTML({}, path.resolve(__dirname, `./fixtures/fixture-simple-jsx.js`))
   task.fork(id, (out) => {
     t.is(out, htmlHelloString)
   })
@@ -112,7 +112,7 @@ test(`file.toHTML should convert a filename into HTML`, (t) => {
   const href = random.word(10)
   const task2 = file.toHTML(
     {text, href},
-    path.resolve(__dirname, `../fixtures/fixture-props-jsx.js`)
+    path.resolve(__dirname, `./fixtures/fixture-props-jsx.js`)
   )
   task2.fork(id, (out) => {
     t.is(out, htmlLogTemplate(text, href))
@@ -122,7 +122,7 @@ test(`file.toHTML should convert a filename into HTML`, (t) => {
 test(`file.toPug should convert a filename into pug`, (t) => {
   t.plan(3)
   t.is(typeof file.toPug, `function`)
-  const task = file.toPug({}, path.resolve(__dirname, `../fixtures/fixture-simple-jsx.js`))
+  const task = file.toPug({}, path.resolve(__dirname, `./fixtures/fixture-simple-jsx.js`))
   task.fork(id, (out) => {
     t.is(pugHelloString, out)
   })
@@ -130,7 +130,7 @@ test(`file.toPug should convert a filename into pug`, (t) => {
   const href = random.word(10)
   const task2 = file.toPug(
     {text, href},
-    path.resolve(__dirname, `../fixtures/fixture-props-jsx.js`)
+    path.resolve(__dirname, `./fixtures/fixture-props-jsx.js`)
   )
   task2.fork(id, (out) => {
     t.is(out, pugLogTemplate(text, href))
