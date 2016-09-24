@@ -6,8 +6,18 @@ import React from 'react'
 import server from 'react-dom/server'
 import html2jade from 'html2jade'
 import Task from 'data.task'
+import {debug as makeDebugger} from 'f-utility/dev/debug'
+const _debug = makeDebugger(`glass-menagerie:jsx-to-pug`)
+const debug = {
+  jsxToHTML: _debug([`jsx`, `toHTML`]),
+  jsxToPug: _debug([`jsx`, `toPug`]),
+  htmlToPug: _debug([`html`, `toPug`]),
+  jsxToJade: _debug([`jsx`, `toJade`]),
+  toHTMLTask: _debug([`jsx`, `toHTMLTask`]),
+  unwrapDefault: _debug([`unwrapDefault`]),
+  toJade: _debug([`toJade`])
+}
 
-// import trace from './trace'
 import {resolveTask} from 'f-utility/core/task'
 
 require(`babel-core/register`)({
@@ -17,6 +27,15 @@ require(`babel-core/register`)({
   ]
 })
 
+/**
+ * A curried, props first wrapper for React.createElement
+ * @function createElement
+ * @curried
+ * @borrows React#createElement
+ * @param {object} props - component props
+ * @param {string} html - raw
+ * @return {object} jsx
+ */
 const createElement = curry(function _createElement(props, html) {
   if (props && props.children && props.children.length > 0) {
     const {children, ...otherProps} = props
@@ -25,16 +44,32 @@ const createElement = curry(function _createElement(props, html) {
   return React.createElement(html, props)
 })
 
+/**
+ * convert raw jsx to html
+ * @function jsxToHTML
+ * @curried
+ * @param {object} props - component props
+ * @param {string} html - raw
+ * @return {object} jsx
+ */
 export const jsx = {
   toHTML: curry(function jsxToHTML(props, raw) {
-    const puller = flow(
+    debug.jsxToHTML(`# input`, props, raw)
+    const out = flow(
       createElement(props),
       server.renderToStaticMarkup
-    )
-    return puller(raw)
+    )(raw)
+    debug.jsxToHTML(`# output`, out)
+    return out
   })
 }
 
+/**
+ * convert raw jsx to html
+ * @function jsxToHTML
+ * @param {string} html - raw
+ * @return {Task} error or jade
+ */
 export const htmlToPug = (html) => {
   return new Task(function _htmlToPugTask(reject, resolve) {
     if (typeof html !== `string`) {
@@ -52,6 +87,15 @@ export const htmlToPug = (html) => {
   })
 }
 
+/**
+ * convert raw jsx to html
+ * @function jsxToPug
+ * @curried
+ * @borrows htmlToPug
+ * @param {object} props - component props
+ * @param {string} rawJSX - raw jsx
+ * @return {Task} error or jade
+ */
 jsx.toPug = curry(function _toPug(props, rawJSX) {
   const jsxToPug = flow(
     jsx.toHTML(props),
@@ -60,27 +104,52 @@ jsx.toPug = curry(function _toPug(props, rawJSX) {
   return jsxToPug(rawJSX)
 })
 
-export const depText = `[deprecated] This format and method is going away once pug is out of beta.`
+const depText = `[deprecated] This format and method is going away once pug is out of beta.`
 
+/**
+ * convert raw jsx to html
+ * @function jsxToJade
+ * @curried
+ * @borrows htmlToPug
+ * @param {object} props - component props
+ * @param {string} rawJSX - raw jsx
+ * @return {Task} error or jade
+ */
 jsx.toJade = curry(function _toJade(props, rawJSX) {
-  const jsxToPug = flow(
+  debug.jsxToJade(`# input`, props, rawJSX)
+  const out = flow(
     jsx.toPug(props),
     (x) => {
-      console.warn(depText) // eslint-disable-line no-console
+      debug.toJade(depText)
       return x
     }
-  )
-  return jsxToPug(rawJSX)
+  )(rawJSX)
+  debug.jsxToJade(`# output`, out)
+  return out
 })
 
+/**
+ * @function toHTMLTask
+ * @param {object} props - component props
+ * @param {string} jsx - raw jsx
+ * @return {Task} error or html
+ */
 jsx.toHTMLTask = (props, rawJSX) => {
-  const consumer = flow(
+  debug.toHTMLTask(`# input`, props, rawJSX)
+  const out = flow(
     jsx.toHTML(props),
     resolveTask
-  )
-  return consumer(rawJSX)
+  )(rawJSX)
+  debug.toHTMLTask(`# output`, out)
+  return out
 }
 
+/**
+ * In order to deal with es6 modules, we need to wrap the incoming data with a hook
+ * @function unwrapDefault
+ * @param {mixed} x - likely a function or object
+ * @return {Task} error or module
+ */
 export const unwrapDefault = (x) => {
   return new Task(function unwrapDefaultTask(reject, resolve) {
     if (typeof x !== `function`) {
@@ -94,12 +163,26 @@ export const unwrapDefault = (x) => {
   })
 }
 
+/**
+ * Function for parsing file paths
+ * @function resolveFilePath
+ * @param {string} path - input path
+ * @return {Task} error or module
+ */
 const resolveFilePath = flow(
   path.resolve,
   require,
   unwrapDefault
 )
 
+/**
+ * convert file to jsx
+ * @function fileTask
+ * @param {function} method - a function to invoke
+ * @param {object} props - component props
+ * @param {string} filePath - file path
+ * @return {Task} error or jsx
+ */
 const fileTask = curry(function _fileTask(method, props, filePath) {
   return new Task(function fileTaskRejectResolve(reject, resolve) {
     resolveFilePath(filePath).fork(reject, function internalResolveFile(jsxFile) {
