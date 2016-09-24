@@ -2,6 +2,13 @@ import flow from 'lodash/fp/flow'
 import yml from 'js-yaml'
 import {readFile} from 'f-utility/core/fs'
 
+import {makeTracer} from 'f-utility/dev/debug'
+const _trace = makeTracer(`glass-menagerie`)
+const trace = {
+  yaml: _trace([`yaml`]),
+  yamlFile: _trace([`yamlFile`])
+}
+
 const {safeLoad: parse} = yml
 
 /**
@@ -21,8 +28,10 @@ const fixNewLines = (x) => x.replace(/\\n/g, `\n`)
  * @return {object} out
  */
 export const yaml = flow(
+  trace.yaml(`# input`),
   fixNewLines,
-  parse
+  parse,
+  trace.yaml(`# output`)
 )
 
 /**
@@ -34,9 +43,11 @@ export const yaml = flow(
  * @return {object} out
  */
 export const yamlFile = flow(
+  trace.yamlFile(`# input`),
   readFile,
   fixNewLines,
-  parse
+  parse,
+  trace.yamlFile(`# output`)
 )
 
 export default yaml
