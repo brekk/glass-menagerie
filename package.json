@@ -1,6 +1,6 @@
 {
   "name": "glass-menagerie",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "A toolset for generating pug / jade output from jsx",
   "main": "index.js",
   "scripts": {
