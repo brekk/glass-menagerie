@@ -7,6 +7,7 @@ import {json} from 'f-utility/core/fs'
 import {isType} from 'f-utility/core/validators'
 import {yaml, yamlFile} from './yaml'
 import {file as jsxFile} from './jsx-to-pug'
+import {createMock} from './proptypes'
 register()
 
 const _debug = makeDebugger(`glass-menagerie`)
@@ -33,6 +34,12 @@ export const readJSONOrYAML = (file) => {
   return out
 }
 
+/**
+ * test whether a string is a valid path
+ * @function isValidFileName
+ * @param {mixed} x - object or filename
+ * @return {boolean} is it a filename?
+ */
 export const isValidFileName = (x) => {
   if (typeof x === `object`) {
     return false
@@ -57,4 +64,8 @@ export const glassMenagerie = curry(function _glassMenagerie(props, _jsxFile) {
     props = readJSONOrYAML(props)
   }
   return jsxFile.toPug(props, _jsxFile)
+})
+
+glassMenagerie.mock = curry(function _dummy(types, _jsxFile) {
+  return jsxFile.toPug(createMock(types), _jsxFile)
 })
