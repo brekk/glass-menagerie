@@ -1,7 +1,7 @@
 {
   "name": "glass-menagerie",
-  "version": "1.0.0",
-  "description": "Template for making new node projects",
+  "version": "0.0.0",
+  "description": "A toolset for generating pug / jade output from jsx",
   "main": "index.js",
   "scripts": {
     "test": "npm run lint && npm run build",
