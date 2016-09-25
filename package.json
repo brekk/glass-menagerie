@@ -64,8 +64,8 @@
     "files": [
       "tests/fixtures/fixture-*jsx.js"
     ],
-    "output": "tests/auto",
-    "allowEmptyProps": false
+    "output": "tests/fixtures",
+    "allowEmptyProps": true
   },
   "keywords": [],
   "author": "brekk",
@@ -107,6 +107,7 @@
     "bluebird": "^3.4.6",
     "chalk": "^1.1.3",
     "commander": "^2.9.0",
+    "dargs": "^5.1.0",
     "data.task": "^3.1.0",
     "data.validation": "^1.3.1",
     "eslint-config-standard": "^5.3.5",
