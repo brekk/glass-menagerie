@@ -1,3 +1,4 @@
+import path from 'path'
 import React from 'react'
 import curry from 'lodash/fp/curry'
 import clone from 'lodash/fp/cloneDeep'
@@ -22,7 +23,8 @@ const debug = {
   alterRequiredKeys: _debug([`proptypes`, `alterRequiredKeys`]),
   inferPropTypeObject: _debug([`proptypes`, `inferPropTypeObject`]),
   genericInferPropType: _debug([`proptypes`, `genericInferPropType`]),
-  convertSimplePropTypes: _debug([`proptypes`, `convertSimplePropTypes`])
+  convertSimplePropTypes: _debug([`proptypes`, `convertSimplePropTypes`]),
+  lookForPropTypes: _debug([`proptypes`, `lookForPropTypes`])
 }
 
 export const {PropTypes: types} = React
@@ -153,7 +155,6 @@ export const convertSimplePropTypes = (y) => {
   const x = reqIndex > -1 ?
     y.slice(match.length).toLowerCase() :
     y
-  debug.convertSimplePropTypes(`reqIndex`, `council of thirteen`, x, reqIndex)
   if (x === `object` || x === `any`) {
     return {}
   } else if (x === `bool`) {
@@ -179,3 +180,30 @@ export const createMock = (typesObject) => {
     mergePairs
   )(typesObject)
 }
+
+const lookForPropTypes = curry(function _lookForPropTypes(filename, allowError, x) {
+  return new Promise(function _promiseToLookForPropTypes(resolve, reject) {
+    if (typeof x !== `function`) {
+      if (x.propTypes) {
+        debug.lookForPropTypes(`found!`, x.propTypes)
+        return resolve(x.propTypes)
+      }
+    }
+    const error = new TypeError(
+      `Expected to be able to find propTypes as an \`export\`-ed value at ${filename}.`
+    )
+    if (!allowError) {
+      reject(error)
+      return
+    }
+    resolve({})
+  })
+})
+
+export const requireWithPropTypes = curry(function _requireWithProps(allowError, filepath) {
+  return flow(
+    path.resolve,
+    require,
+    lookForPropTypes(filepath, allowError)
+  )(filepath)
+})

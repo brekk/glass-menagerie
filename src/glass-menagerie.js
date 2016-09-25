@@ -1,19 +1,23 @@
+// import fs from 'fs'
 import path from 'path'
 // import {writeFile} from 'f-utility/core/task'
 import curry from 'lodash/fp/curry'
 import register from 'babel-core/register'
 import {debug as makeDebugger} from 'f-utility/dev/debug'
 import {json} from 'f-utility/core/fs'
+import {taskToPromise} from 'f-utility/core/task'
 import {isType} from 'f-utility/core/validators'
 import {yaml, yamlFile} from './yaml'
 import {file as jsxFile} from './jsx-to-pug'
-import {createMock} from './proptypes'
+import {createMock, requireWithPropTypes} from './proptypes'
 register()
 
 const _debug = makeDebugger(`glass-menagerie`)
 const debug = {
   readJSONOrYAML: _debug([`readJSONOrYAML`]),
-  glass: _debug(`main`)
+  glass: _debug([`main`]),
+  autoMock: _debug([`autoMock`]),
+  makePugKeyValues: _debug(`makePugKeyValues`)
 }
 
 /**
@@ -66,6 +70,39 @@ export const glassMenagerie = curry(function _glassMenagerie(props, _jsxFile) {
   return jsxFile.toPug(props, _jsxFile)
 })
 
-glassMenagerie.mock = curry(function _dummy(types, _jsxFile) {
+export const mock = curry(function _mock(types, _jsxFile) {
   return jsxFile.toPug(createMock(types), _jsxFile)
 })
+
+export const autoMock = curry(function _autoMock(allowError, file) {
+  return requireWithPropTypes(allowError, file).then((types) => {
+    debug.autoMock(`types`, types)
+    const mocks = createMock(types)
+    debug.autoMock(`mocks`, mocks)
+    return taskToPromise(jsxFile.toPug(mocks, file))
+  })
+})
+
+export const makePugKeyValues = curry(
+  function _makePugKeyValues(config, relativize, pair) {
+    if (!config || !config.output) {
+      throw new TypeError(`Expected to be able to access config.output`)
+    }
+    if (typeof relativize !== `function`) {
+      throw new TypeError(`Expected to receive relativize function.`)
+    }
+    if (!pair || !Array.isArray(pair) || pair.length !== 2) {
+      throw new TypeError(`Expected to receive [key, value] pair.`)
+    }
+    const [k, v] = pair
+    const {output} = config
+    if (typeof k !== `string` || k.length < 1) {
+      throw new TypeError(`Unable to read path of non-string.`)
+    }
+    const file = path.parse(k)
+    debug.makePugKeyValues(`file`, file)
+    const newPath = path.resolve(relativize(output), file.name + `.pug`)
+    debug.makePugKeyValues(`newPath`, newPath)
+    return [k, {path: newPath, raw: v, altered: `//- ${k}\n${v}`}]
+  }
+)
