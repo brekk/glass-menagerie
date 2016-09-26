@@ -109,7 +109,7 @@ async function run() {
     .option(`-a, --auto-mock`, `automagically pull exported 'propTypes' in`)
     .option(`-p, --props <p>`, `raw props`, yaml)
     .option(`-q, --prop-file <q>`, `prop file`, readJSONOrYAML)
-    .option(`-f, --files, --file <f>`, list)
+    .option(`-f, --files, --file <f>`, `glob`, list)
     .option(`-x, --no-config`, `don't use config, even if set in package.json`)
     .option(`-o, --output <o>`, `save output to file (defaults to stdout)`)
     .option(`-w, --no-write`, `don't write output to files, just output to stdout`)
