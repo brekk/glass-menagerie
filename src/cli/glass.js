@@ -45,6 +45,13 @@ const relativePath = curry(function _relativePath(dir, x) {
   return path.relative(dir, x)
 })
 
+const noParamsMessage = [
+  `glass needs flags in order to render\n`,
+  `(glass -p "text: value\\nlink: item" file.jsx) or`,
+  `(glass -q <file.json|yml> file.jsx)\n`,
+  `or set a "glass" config in your package.json\n`
+].join(` `)
+
 const writeFiles = (out) => {
   debug(`writeFiles#input`, out)
   const [, {path: newPath, altered}] = out
@@ -87,6 +94,7 @@ async function generate(config, relativize, allowError, noWrite) {
 async function run() {
   const json = await readPkgUp()
   const dir = await pkgDir()
+  process.chdir(dir)
   const relativize = relativePath(dir)
 
   const {pkg} = json
@@ -102,6 +110,7 @@ async function run() {
     .option(`-p, --props <p>`, `raw props`, yaml)
     .option(`-q, --prop-file <q>`, `prop file`, readJSONOrYAML)
     .option(`-f, --files, --file <f>`, list)
+    .option(`-x, --no-config`, `don't use config, even if set in package.json`)
     .option(`-o, --output <o>`, `save output to file (defaults to stdout)`)
     .option(`-w, --no-write`, `don't write output to files, just output to stdout`)
     .option(`-n, --allow-empty-props`, `be lax on the explicit propTypes export rule`)
@@ -115,14 +124,10 @@ async function run() {
   }
   const allowError = program.allowEmptyProps || config.allowEmptyProps
   debug(`__ settings:`, {...program, ...config})
-  if (!rawProps && !program.autoMock) {
+  const noConfig = program.noConfig || false
+  if (!noConfig || !rawProps && !program.autoMock) {
     if (!config || (!config.output && !program.output)) {
-      process.stderr.write([
-        `glass needs flags in order to render\n`,
-        `(glass -p "text: value\\nlink: item" file.jsx) or`,
-        `(glass -q <file.json|yml> file.jsx)\n`,
-        `or set a "glass" config in your package.json\n`
-      ].join(` `))
+      process.stderr.write(noParamsMessage)
       process.exit(1)
     }
     generate(config, relativize, allowError, noWrite)

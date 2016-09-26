@@ -7,6 +7,7 @@ module.exports = function _configureWallaby(wallaby) {
     files: [
       {pattern: `node_modules/babel-polyfill/dist/polyfill.js`, instrument: false},
       `src/**/*.js`,
+      `lib/cli/*.js`,
       `tests/fixtures/**`
     ],
     env: {
@@ -20,7 +21,9 @@ module.exports = function _configureWallaby(wallaby) {
     debug: `true`,
     testFramework: `ava`,
     tests: [
-      `tests/**/spec-*.js`
+      `tests/**/spec-*.js`,
+      // can't figure out how to get this working with wallaby yet
+      `!tests/cli/spec-glass.js`
     ]
   }
 }
