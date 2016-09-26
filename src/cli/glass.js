@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import fs from 'fs'
-import path from 'path'
+// import path from 'path'
 import Promise from 'bluebird'
-import mkdirp from 'mkdirp-bluebird'
+// import mkdirp from 'mkdirp-bluebird'
 import program from 'commander'
 import readPkgUp from 'read-pkg-up'
 import pkgDir from 'pkg-dir'
@@ -11,14 +11,14 @@ import poly from 'babel-polyfill'
 import _debug from 'debug'
 import globby from 'globby'
 import zip from 'lodash/fp/zip'
-import curry from 'lodash/fp/curry'
+// import curry from 'lodash/fp/curry'
 import map from 'lodash/fp/map'
 import id from 'lodash/fp/identity'
 import flow from 'lodash/fp/flow'
 import {makeTracer} from 'f-utility/dev/debug'
 // import forEach from 'lodash/fp/forEach'
 import {mergePairs} from 'f-utility/fp/merge-pairs'
-import {yaml} from '../yaml'
+// import {yaml} from '../yaml'
 register()
 const noop = () => {}
 noop(poly)
@@ -32,25 +32,28 @@ const trace = {
 
 const debug = _debug(`glass-menagerie:cli`)
 
-import {requireWithPropTypes} from '../proptypes'
+// import {requireWithPropTypes} from '../proptypes'
 
 import {
   readJSONOrYAML,
-  glassMenagerie,
+  // glassMenagerie,
   autoMock,
   makePugKeyValues
 } from '../glass-menagerie'
 
-const relativePath = curry(function _relativePath(dir, x) {
-  return path.relative(dir, x)
-})
+// const relativePath = curry(function _relativePath(dir, x) {
+//   return path.relative(dir, x)
+// })
 
-const noParamsMessage = [
-  `glass needs flags in order to render\n`,
-  `(glass -p "text: value\\nlink: item" file.jsx) or`,
-  `(glass -q <file.json|yml> file.jsx)\n`,
-  `or set a "glass" config in your package.json\n`
-].join(` `)
+export const messages = {
+  noParams: [
+    `glass needs flags in order to render\n`,
+    `(glass -p "text: value\\nlink: item" -f file.jsx) or`,
+    `(glass -p file.{json,yml} -f file.jsx)\n`,
+    `or point at a config file (glass -c glass.json)\n`,
+    `or set a "glass" config in your package.json\n`
+  ].join(` `)
+}
 
 const writeFiles = (out) => {
   debug(`writeFiles#input`, out)
@@ -59,7 +62,7 @@ const writeFiles = (out) => {
   return out
 }
 
-async function generate(config, relativize, allowError, noWrite) {
+export async function generate(config, relativize, allowError, noWrite) {
   debug(`config`, config)
   const relFiles = map(relativize, config.files)
   debug(`relFiles`, relFiles)
@@ -95,10 +98,10 @@ async function run() {
   const json = await readPkgUp()
   const dir = await pkgDir()
   process.chdir(dir)
-  const relativize = relativePath(dir)
+  // const relativize = relativePath(dir)
 
   const {pkg} = json
-  const {glass: config} = pkg
+  // const {glass: config} = pkg
 
   function list(val) {
     return val.split(`,`)
@@ -106,16 +109,36 @@ async function run() {
 
   program
     .version(pkg.version)
-    .option(`-a, --auto-mock`, `automagically pull exported 'propTypes' in`)
-    .option(`-p, --props <p>`, `raw props`, yaml)
-    .option(`-q, --prop-file <q>`, `prop file`, readJSONOrYAML)
-    .option(`-f, --files, --file <f>`, `glob`, list)
-    .option(`-x, --no-config`, `don't use config, even if set in package.json`)
-    .option(`-o, --output <o>`, `save output to file (defaults to stdout)`)
-    .option(`-w, --no-write`, `don't write output to files, just output to stdout`)
-    .option(`-n, --allow-empty-props`, `be lax on the explicit propTypes export rule`)
+    .option(`-c, -C, --config <c>`, `a path to a config file written in JSON or YAML`)
+    .option(
+      `-d, -D, --dir, --directory <d>`,
+      `generate output to this directory, on a per file basis`
+    )
+    .option(`-f, -F, --files, --file <f>`, `single file or glob, optionally comma-delimited`, list)
+    .option(`-i, -I, --include <i>`, `a globby path of things to include explicitly`, list)
+    .option(`-l, -L, --log <l>`, `generate a log file of the operation`)
+    .option(
+      `-n, -N, --no-config`,
+      `explicitly ignore existing configuration. This flag beats --config.`
+    )
+    .option(`-o, -O, --output <o>`, `generate output to this directory, on a per file basis`)
+    .option(
+      `-p, -P, --props <p>`,
+      `a prop file, raw props, or the literal strings "lax" or "infer" (the default)`,
+      readJSONOrYAML
+    )
+    .option(`-w, -W, --watch`, `Watch files and automatically regenerate on change`)
+    .option(
+      `-x, -X, --exclude <x>`,
+    [
+      `A globby path of things to exclude explicitly.`,
+      `This flag beats --include on identical matches.`
+    ].join(` `),
+      list
+    )
     .parse(process.argv)
 
+  /*
   const rawProps = program.props || program.propFile
   const output = program.output || config.output
   const noWrite = program.noWrite || config.noWrite || false
@@ -176,6 +199,8 @@ async function run() {
       writers.error(e.stack)
     }
   }
+*/
 }
 
 run()
+// */

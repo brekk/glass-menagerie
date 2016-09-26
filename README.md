@@ -94,17 +94,18 @@ In order to run the `glass` tool effectively, it would probably be helpful to fr
     - automatically re-run build on change
   * no-config (`-n`, `--no-config`)
     - ignore presence of existing config, especially useful for one-off generation or testing
+
 #### Outputs
   * log (`-l`, `--log`) - "json" || "yml" || "yaml" || "./path/to/glass-menagerie.log"
     - generate a verbose log in `json` | `yml` output, perfect for consumption by machines or intermediate storage
     ```sh
     # verbose flags - single file
     glass --props "href: https://github.com/brekk/glass-menagerie\ntext: github" --file ./tests/fixtures/fixture-blog-post-jsx.js --log yml
-    # short glags - single file
+    # short flags - single file
     glass -p "href: https://github.com/brekk/glass-menagerie\ntext: github" -f ./tests/fixtures/fixture-blog-post-jsx.js -l json
     # verbose flags - multiple files (note the quotes, required if you wanna get fancy)
     glass --props "href: https://github.com/brekk/glass-menagerie\ntext: github" --files "./tests/fixtures/fixture-*,!*.pug" --log yaml
-    # verbose flags - multiple files
+    # short flags - multiple files
     glass -p "href: https://github.com/brekk/glass-menagerie\ntext: github" -f "./tests/fixtures/fixture-*,!*.pug" -l yaml
     ```
   * directory (`-d`, `--directory`) - "/path/to/directory"
@@ -112,15 +113,8 @@ In order to run the `glass` tool effectively, it would probably be helpful to fr
     ```sh
     # verbose flags - single file
     glass --props "href: https://github.com/brekk/glass-menagerie\ntext: github" --file ./tests/fixtures/fixture-blog-post-jsx.js --directory ./tests/fixtures
-    # short glags - single file
+    # short flags - single file
     glass -p "href: https://github.com/brekk/glass-menagerie\ntext: github" -f ./tests/fixtures/fixture-blog-post-jsx.js -d ./tests/fixtures
-    ```
-  * full output (`-o`, `--output`)
-    - _*_ with a config.directory given, this will write out:
-    ```sh
-    glass --props "href: https://github.com/brekk/glass-menagerie\ntext: github" --file ./tests/fixtures/fixture-blog-post-jsx.js --directory ./tests/fixtures --output
-    # short glags - single file
-    glass -p "href: https://github.com/brekk/glass-menagerie\ntext: github" -f ./tests/fixtures/fixture-blog-post-jsx.js -d ./tests/fixtures -o
     ```
   * raw
     - when running in single-file mode only (and with no other output flags active), the default is to print the information to `stdout`
@@ -140,17 +134,23 @@ Usage: glass [options]
 
 Options:
 
-  -h, --help               output usage information
-  -V, --version            output the version number
-  -a, --auto-mock          automagically pull exported 'propTypes' in
-  -p, --props <p>          raw props
-  -q, --prop-file <f>      prop file
-  -o, --output <o>         save output to file (defaults to stdout)
-  -w, --no-write           don't write output to files, just output to stdout
-  -n, --allow-empty-props  be lax on the explicit propTypes export rule
+  -h, --help                      output usage information
+  -V, --version                   output the version number
+  -c, -C, --config <c>            a path to a config file written in JSON or YAML
+  -d, -D, --dir, --directory <d>  generate output to this directory, on a per file basis
+  -f, -F, --files, --file <f>     single file or glob, optionally comma-delimited
+  -i, -I, --include <i>           a globby path of things to include explicitly
+  -l, -L, --log <l>               generate a log file of the operation
+  -n, -N, --no-config             explicitly ignore existing configuration. This flag beats --config.
+  -o, -O, --output <o>            generate output to this directory, on a per file basis
+  -p, -P, --props <p>             a prop file, raw props, or the literal strings "lax" or "infer" (the default)
+  -w, -W, --watch                 Watch files and automatically regenerate on change
+  -x, -X, --exclude <x>           A globby path of things to exclude explicitly. This flag beats --include on identical matches.
 ```
 
-To auto-mock and convert your files, add this to your `package.json`:
+### Configuration
+
+To auto-mock and convert your files, either add this to your `package.json`:
 
 ```json
 "glass": {
@@ -160,4 +160,14 @@ To auto-mock and convert your files, add this to your `package.json`:
   "output": "codepen",
   "allowEmptyProps": false
 }
+```
+
+Or specify an explicit `.json` or `.yaml` or `.yml` file with the `--config` flag:
+
+```yaml
+glass:
+  files:
+  - "tests/fixtures/fixture-*jsx.js"
+  "output": "codepen"
+  "allowEmptyProps": false
 ```
