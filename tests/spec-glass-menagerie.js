@@ -1,19 +1,37 @@
-// import fs from 'fs'
 import path from 'path'
-import Promise from 'bluebird'
+// import Promise from 'bluebird'
+import register from 'babel-core/register'
+register()
 import test from 'ava'
+// import id from 'lodash/fp/identity'
+import _debug from 'debug'
 import {taskToPromise} from 'f-utility/core/task'
+import random from 'f-utility/testing/random'
 import {
   readJSONOrYAML,
   isValidFileName,
-  glassMenagerie
+  glassMenagerie,
+  mock,
+  autoMock,
+  makePugKeyValues
 } from '../src/glass-menagerie'
+const debug = _debug(`glass-menagerie:tests:main`)
+
 import {propTypes} from './fixtures/fixture-blog-post-jsx'
+
+const pugBlog = [
+  `.blog-post`,
+  `  h1 `,
+  `  strong `,
+  `  p `
+]
+const relativize = (x) => path.resolve(__dirname, x)
 const files = {
-  json: path.resolve(__dirname, `./fixtures/fixture-props.json`),
-  yaml: path.resolve(__dirname, `./fixtures/fixture-props.yml`),
-  jsx: path.resolve(__dirname, `./fixtures/fixture-props-jsx.js`),
-  blog: path.resolve(__dirname, `./fixtures/fixture-blog-post-jsx.js`)
+  json: relativize(`./fixtures/fixture-props.json`),
+  yaml: relativize(`./fixtures/fixture-props.yml`),
+  jsx: relativize(`./fixtures/fixture-props-jsx.js`),
+  blog: relativize(`./fixtures/fixture-blog-post-jsx.js`),
+  missingProps: relativize(`./fixtures/fixture-no-proptypes-jsx.js`)
 }
 test(`readJSONOrYAML should be able to read json or yaml files`, (t) => {
   t.plan(3)
@@ -51,23 +69,117 @@ test(`glassMenagerie should expect an object/string/file and a jsxFile`, async (
   t.is(two, raw)
 })
 
+const compareOutputToMockOutput = (result) => {
+  const [root, h1, strong, p] = result.split(`\n`)
+  const [expectedRoot, expectedH1, expectedStrong, expectedP] = pugBlog
+  return {
+    is: [root, expectedRoot],
+    truthy: [
+      h1.indexOf(expectedH1) > -1,
+      strong.indexOf(expectedStrong) > -1,
+      p.indexOf(expectedP) > -1
+    ]
+  }
+}
+
 test(
-  `glassMenagerie.mock should be able to generate a props object given a propTypes object`,
+  `mock should be able to generate a props object given a propTypes object`,
   async (t) => {
     t.plan(5)
-    const pugBlog = [
-      `.blog-post`,
-      `  h1 `,
-      `  strong `,
-      `  p `
-    ]
-    const [expectedRoot, expectedH1, expectedStrong, expectedP] = pugBlog
-    t.is(typeof glassMenagerie.mock, `function`)
-    const out = await taskToPromise(glassMenagerie.mock(propTypes, files.blog))
-    const [root, h1, strong, p] = out.split(`\n`)
-    t.is(root, expectedRoot)
-    t.truthy(h1.indexOf(expectedH1) > -1)
-    t.truthy(strong.indexOf(expectedStrong) > -1)
-    t.truthy(p.indexOf(expectedP) > -1)
+    t.is(typeof mock, `function`)
+    const out = await taskToPromise(mock(propTypes, files.blog))
+    const {is, truthy} = compareOutputToMockOutput(out)
+    const [h1, strong, p] = truthy
+    t.is(...is)
+    t.truthy(h1)
+    t.truthy(strong)
+    t.truthy(p)
+  }
+)
+
+test(
+  `autoMock should be able to read a file for an exported propTypes object`,
+  async (t) => {
+    t.plan(6)
+    t.is(typeof autoMock, `function`)
+    t.is(typeof autoMock(true), `function`)
+    const output = await autoMock(false, files.blog)
+    const {is, truthy} = compareOutputToMockOutput(output)
+    const [h1, strong, p] = truthy
+    t.is(...is)
+    t.truthy(h1)
+    t.truthy(strong)
+    t.truthy(p)
+  }
+)
+test(
+  [
+    `autoMock should fail when given a file which doesn't`,
+    `export propTypes explicitly and allowError is set to false`
+  ].join(` `),
+  (t) => {
+    t.plan(1)
+    t.throws(
+      autoMock(false, files.missingProps),
+      `Expected to be able to find propTypes as an \`export\`-ed value at ${files.missingProps}.`
+    )
+  }
+)
+test(
+  [
+    `autoMock should not fail when given a file which doesn't`,
+    `export propTypes explicitly and allowError is set to true`
+  ].join(` `),
+  (t) => {
+    t.plan(1)
+    t.notThrows(
+      autoMock(true, files.missingProps)
+    )
+  }
+)
+test(
+  `makePugKeyValues should operate on a [key, value] with some configuration`, (t) => {
+    t.plan(8)
+    t.is(typeof makePugKeyValues, `function`)
+    const args = [{output: `./tmp/`}, relativize, [files.blog, random.word(10)]]
+    t.throws(
+      () => makePugKeyValues({}, args[1], args[2]),
+      `Expected to be able to access config.output`
+    )
+    t.throws(
+      () => makePugKeyValues(args[0], null, args[2]),
+      `Expected to receive relativize function.`
+    )
+    t.throws(
+      () => makePugKeyValues(args[0], args[1], null),
+      `Expected to receive [key, value] pair.`
+    )
+    const out = makePugKeyValues(...args)
+    debug(`out`, out)
+    const parsed = path.parse(files.blog)
+    const name = parsed.name
+    const {dir} = path.parse(relativize(args[0].output))
+    const matchPath = path.resolve(dir + `/`, args[0].output, name + `.pug`)
+    const [key, value] = out
+    t.is(key, files.blog)
+    t.is(value.path, matchPath)
+    t.is(value.raw, args[2][1])
+    const expected = [
+      `//- ${args[2][0]}`,
+      `//- autogenerated by glass, to recreate, run:`,
+      `//- glass -f ${args[2][0]}`,
+      `${args[2][1]}`
+    ].join(`\n`)
+    t.is(value.altered, expected)
+  }
+)
+test(
+  `makePugKeyValues should throw when given a bad file as a key`,
+  (t) => {
+    t.plan(1)
+    t.throws(
+      () => makePugKeyValues({output: `./tmp/`}, relativize, [null, random.word(10)]),
+      `Unable to read path of non-string.`
+    )
   }
 )

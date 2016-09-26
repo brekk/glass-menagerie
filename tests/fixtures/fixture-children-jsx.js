@@ -7,9 +7,10 @@ export const ComponentWithKids = (props) => (
     {props.children}
   </article>
 )
-ComponentWithKids.propTypes = {
+export const propTypes = {
   text: types.string.isRequired,
   children: types.node
 }
+ComponentWithKids.propTypes = propTypes
 
 export default ComponentWithKids

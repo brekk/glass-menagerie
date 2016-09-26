@@ -1,5 +1,5 @@
+import path from 'path'
 import React from 'react'
-
 const {PropTypes: types} = React
 import test from 'ava'
 import identity from 'lodash/fp/identity'
@@ -14,7 +14,8 @@ import {
   inferPropTypeObject,
   genericPropTypeLookup,
   convertSimplePropTypes,
-  createMock
+  createMock,
+  requireWithPropTypes
 } from '../src/proptypes'
 
 test(`matchPropTypes must match a given propType by name`, (t) => {
@@ -143,3 +144,19 @@ test(`createMock should do convertSimplePropTypes in aggregate`, (t) => {
   t.is(typeof mock.b, `number`)
   t.is(typeof mock.c, `string`)
 })
+test(`requireWithPropTypes should optionally throw on files missing an exported propType`,
+  (t) => {
+    t.plan(2)
+    t.is(typeof requireWithPropTypes, `function`)
+    const filename = path.resolve(__dirname, `./fixtures/fixture-no-proptypes-jsx.js`)
+    return requireWithPropTypes(
+      false,
+      filename
+    ).catch((e) => {
+      t.is(
+        e.toString(),
+        `TypeError: Expected to be able to find propTypes as an \`export\`-ed value at ${filename}.`
+      )
+    })
+  }
+)
